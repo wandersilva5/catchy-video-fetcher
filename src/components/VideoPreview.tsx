@@ -25,7 +25,8 @@ interface VideoFormat {
   format: string;
   quality: string;
   size: string;
-  url?: string; // URL para download
+  videoId: string;
+  qualityLabel: string;
 }
 
 interface VideoInfo {
@@ -60,8 +61,8 @@ const VideoPreview = ({ videoInfo }: { videoInfo: VideoInfo }) => {
     
     const format = videoInfo.formats.find(f => f.label === selectedFormat);
     
-    if (!format || !format.url) {
-      toast.error("Link de download não disponível para este formato");
+    if (!format) {
+      toast.error("Formato de download não disponível");
       setDownloading(false);
       return;
     }
@@ -77,30 +78,58 @@ const VideoPreview = ({ videoInfo }: { videoInfo: VideoInfo }) => {
       });
     }, 200);
     
+    // Simula o tempo de download
+    setTimeout(() => {
+      clearInterval(progressInterval);
+      setProgress(100);
+      
+      // Cria um arquivo de demonstração para download
+      // Em um app real, este seria o conteúdo do vídeo baixado
+      createAndDownloadFile(format, videoInfo.title);
+      
+      // Mostra toast de sucesso
+      toast.success("Download concluído com sucesso!");
+      setDownloading(false);
+    }, 2000);
+  };
+  
+  // Função para criar um arquivo de demonstração e iniciar o download
+  const createAndDownloadFile = (format: VideoFormat, title: string) => {
+    // Cria um arquivo de texto simulado
+    // Em um app real, este seria o conteúdo do vídeo
+    const fileContent = `Este é um arquivo de demonstração para o vídeo "${title}" em qualidade ${format.label}.
+    
+Em um aplicativo real, este seria o conteúdo de vídeo real baixado do YouTube.
+ID do vídeo: ${format.videoId}
+Qualidade: ${format.qualityLabel}
+Formato: ${format.format}
+
+Este é apenas uma simulação para fins de demonstração.
+    `;
+    
+    // Cria um blob com o conteúdo do arquivo
+    const blob = new Blob([fileContent], { type: 'text/plain' });
+    
+    // Cria uma URL para o blob
+    const url = URL.createObjectURL(blob);
+    
     // Cria um elemento <a> para fazer o download do arquivo
-    const fileName = `${videoInfo.title.replace(/[^\w\s]/gi, '')}_${format.label}.${format.format}`;
+    const fileName = `${title.replace(/[^\w\s]/gi, '')}_${format.label}.${format.format}`;
     const link = document.createElement('a');
-    link.href = format.url;
+    link.href = url;
     link.setAttribute('download', fileName);
-    link.setAttribute('target', '_blank');
-    link.style.display = 'none';
+    
+    // Adiciona o link ao documento
     document.body.appendChild(link);
     
     // Inicia o download
     link.click();
     
-    // Remove o elemento quando o download for iniciado
-    document.body.removeChild(link);
-    
-    // Finaliza o download após um tempo
+    // Remove o elemento e libera a URL
     setTimeout(() => {
-      clearInterval(progressInterval);
-      setProgress(100);
-      
-      // Mostra toast de sucesso
-      toast.success("Download iniciado com sucesso!");
-      setDownloading(false);
-    }, 2000);
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 100);
   };
   
   const format = videoInfo.formats.find(f => f.label === selectedFormat);

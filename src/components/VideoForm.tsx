@@ -56,12 +56,21 @@ const VideoForm = ({ onVideoInfo }: { onVideoInfo: (videoInfo: any) => void }) =
         // Usamos a API oficial de thumbnails do YouTube
         const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
         
-        // Criamos URLs simuladas para o download
-        const baseUrl = `https://example.com/download/${videoId}`;
+        // Usando videoId para criar títulos de vídeo mais realistas
+        let videoTitle = `Vídeo do YouTube - ${videoId}`;
+        
+        // Em um app real, este título viria da API do YouTube
+        if (url.includes("title=")) {
+          try {
+            videoTitle = decodeURIComponent(url.split("title=")[1].split("&")[0]);
+          } catch (e) {
+            // Fallback para o título padrão se algo der errado
+          }
+        }
         
         const mockVideoInfo = {
           id: videoId,
-          title: "Vídeo do YouTube - " + videoId,
+          title: videoTitle,
           thumbnail: thumbnailUrl,
           formats: [
             { 
@@ -69,35 +78,41 @@ const VideoForm = ({ onVideoInfo }: { onVideoInfo: (videoInfo: any) => void }) =
               format: "mp4", 
               quality: "full-hd", 
               size: "120MB",
-              url: `${baseUrl}?format=mp4&quality=1080p` 
+              // Sem URLs externas, usaremos o Blob API para download local
+              videoId: videoId,
+              qualityLabel: "1080p"
             },
             { 
               label: "720p", 
               format: "mp4", 
               quality: "hd", 
               size: "45MB",
-              url: `${baseUrl}?format=mp4&quality=720p` 
+              videoId: videoId,
+              qualityLabel: "720p" 
             },
             { 
               label: "480p", 
               format: "mp4", 
               quality: "sd", 
               size: "25MB",
-              url: `${baseUrl}?format=mp4&quality=480p` 
+              videoId: videoId,
+              qualityLabel: "480p" 
             },
             { 
               label: "360p", 
               format: "mp4", 
               quality: "low", 
               size: "15MB",
-              url: `${baseUrl}?format=mp4&quality=360p` 
+              videoId: videoId,
+              qualityLabel: "360p" 
             },
             { 
               label: "Audio Only", 
               format: "mp3", 
               quality: "high", 
               size: "8MB",
-              url: `${baseUrl}?format=mp3&quality=high` 
+              videoId: videoId,
+              qualityLabel: "audio" 
             }
           ]
         };
