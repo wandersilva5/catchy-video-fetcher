@@ -39,11 +39,17 @@ const VideoPreview = ({ videoInfo }: { videoInfo: VideoInfo }) => {
   const [selectedFormat, setSelectedFormat] = useState<string>(videoInfo.formats[0].label);
   const [downloading, setDownloading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [thumbnailError, setThumbnailError] = useState(false);
 
   // Reset progress when changing format
   useEffect(() => {
     setProgress(0);
   }, [selectedFormat]);
+
+  // Reset thumbnail error when video info changes
+  useEffect(() => {
+    setThumbnailError(false);
+  }, [videoInfo]);
 
   const handleDownload = () => {
     setDownloading(true);
@@ -99,6 +105,13 @@ const VideoPreview = ({ videoInfo }: { videoInfo: VideoInfo }) => {
   
   const format = videoInfo.formats.find(f => f.label === selectedFormat);
 
+  // Generate fallback thumbnail URLs
+  const getFallbackThumbnail = () => {
+    const qualities = ['maxresdefault', 'sddefault', 'hqdefault', '0'];
+    const index = thumbnailError ? Math.min(thumbnailError ? 1 : 0, qualities.length - 1) : 0;
+    return `https://img.youtube.com/vi/${videoInfo.id}/${qualities[index]}.jpg`;
+  };
+
   return (
     <div className="w-full max-w-4xl mx-auto p-4 animate-in" id="download-section">
       <Card className="border-2 shadow-lg overflow-hidden">
@@ -112,12 +125,13 @@ const VideoPreview = ({ videoInfo }: { videoInfo: VideoInfo }) => {
             <div className="flex-1 min-w-0">
               <div className="aspect-video rounded-lg overflow-hidden bg-muted">
                 <img 
-                  src={videoInfo.thumbnail} 
+                  src={thumbnailError ? getFallbackThumbnail() : videoInfo.thumbnail} 
                   alt={videoInfo.title}
                   className="w-full h-full object-cover"
                   onError={(e) => {
+                    setThumbnailError(true);
                     const target = e.target as HTMLImageElement;
-                    target.src = `https://img.youtube.com/vi/${videoInfo.id}/0.jpg`;
+                    target.src = getFallbackThumbnail();
                   }}
                 />
               </div>

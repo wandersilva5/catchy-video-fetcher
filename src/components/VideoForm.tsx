@@ -14,6 +14,20 @@ const VideoForm = ({ onVideoInfo }: { onVideoInfo: (videoInfo: any) => void }) =
     return pattern.test(url);
   };
 
+  const extractVideoId = (url: string): string | null => {
+    // Handle youtu.be format
+    if (url.includes("youtu.be")) {
+      return url.split("/").pop() || null;
+    }
+    
+    // Handle youtube.com format
+    try {
+      return new URL(url).searchParams.get("v");
+    } catch (e) {
+      return null;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -30,20 +44,25 @@ const VideoForm = ({ onVideoInfo }: { onVideoInfo: (videoInfo: any) => void }) =
     setLoading(true);
 
     try {
+      const videoId = extractVideoId(url);
+      
+      if (!videoId) {
+        throw new Error("Não foi possível extrair o ID do vídeo");
+      }
+      
       // Em um app real, faríamos uma chamada à API para obter informações do vídeo
       // Simulando chamada de API com setTimeout
       setTimeout(() => {
-        const videoId = url.includes("youtu.be") 
-          ? url.split("/").pop() 
-          : new URL(url).searchParams.get("v");
-          
+        // Usamos a API oficial de thumbnails do YouTube
+        const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+        
         // Criamos URLs simuladas para o download
         const baseUrl = `https://example.com/download/${videoId}`;
         
         const mockVideoInfo = {
           id: videoId,
           title: "Vídeo do YouTube - " + videoId,
-          thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+          thumbnail: thumbnailUrl,
           formats: [
             { 
               label: "1080p", 
