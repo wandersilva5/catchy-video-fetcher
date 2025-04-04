@@ -1,8 +1,9 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Download, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
+import { Progress } from "@/components/ui/progress";
 import {
   Card,
   CardContent,
@@ -24,6 +25,7 @@ interface VideoFormat {
   format: string;
   quality: string;
   size: string;
+  url?: string; // URL para download
 }
 
 interface VideoInfo {
@@ -36,14 +38,60 @@ interface VideoInfo {
 const VideoPreview = ({ videoInfo }: { videoInfo: VideoInfo }) => {
   const [selectedFormat, setSelectedFormat] = useState<string>(videoInfo.formats[0].label);
   const [downloading, setDownloading] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  // Reset progress when changing format
+  useEffect(() => {
+    setProgress(0);
+  }, [selectedFormat]);
 
   const handleDownload = () => {
     setDownloading(true);
+    setProgress(0);
     
-    // Simulate download process
+    // Mostra toast informando que o download está começando
     toast.info("Preparando seu download...");
     
+    const format = videoInfo.formats.find(f => f.label === selectedFormat);
+    
+    if (!format || !format.url) {
+      toast.error("Link de download não disponível para este formato");
+      setDownloading(false);
+      return;
+    }
+    
+    // Simula progresso do download
+    const progressInterval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 95) {
+          clearInterval(progressInterval);
+          return prev;
+        }
+        return prev + 5;
+      });
+    }, 200);
+    
+    // Cria um elemento <a> para fazer o download do arquivo
+    const fileName = `${videoInfo.title.replace(/[^\w\s]/gi, '')}_${format.label}.${format.format}`;
+    const link = document.createElement('a');
+    link.href = format.url;
+    link.setAttribute('download', fileName);
+    link.setAttribute('target', '_blank');
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    
+    // Inicia o download
+    link.click();
+    
+    // Remove o elemento quando o download for iniciado
+    document.body.removeChild(link);
+    
+    // Finaliza o download após um tempo
     setTimeout(() => {
+      clearInterval(progressInterval);
+      setProgress(100);
+      
+      // Mostra toast de sucesso
       toast.success("Download iniciado com sucesso!");
       setDownloading(false);
     }, 2000);
@@ -103,6 +151,13 @@ const VideoPreview = ({ videoInfo }: { videoInfo: VideoInfo }) => {
                   <li><span className="font-medium">Tamanho estimado:</span> {format?.size}</li>
                 </ul>
               </div>
+              
+              {progress > 0 && (
+                <div className="space-y-2">
+                  <Progress value={progress} className="h-2" />
+                  <p className="text-xs text-center">{progress}% concluído</p>
+                </div>
+              )}
               
               <Button 
                 onClick={handleDownload}

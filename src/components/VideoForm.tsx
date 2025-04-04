@@ -30,22 +30,56 @@ const VideoForm = ({ onVideoInfo }: { onVideoInfo: (videoInfo: any) => void }) =
     setLoading(true);
 
     try {
-      // In a real app, we would make an API call to get the video info
-      // Simulating API call with setTimeout
+      // Em um app real, faríamos uma chamada à API para obter informações do vídeo
+      // Simulando chamada de API com setTimeout
       setTimeout(() => {
         const videoId = url.includes("youtu.be") 
           ? url.split("/").pop() 
           : new URL(url).searchParams.get("v");
           
+        // Criamos URLs simuladas para o download
+        const baseUrl = `https://example.com/download/${videoId}`;
+        
         const mockVideoInfo = {
           id: videoId,
-          title: "Vídeo do YouTube",
+          title: "Vídeo do YouTube - " + videoId,
           thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
           formats: [
-            { label: "720p", format: "mp4", quality: "hd", size: "45MB" },
-            { label: "480p", format: "mp4", quality: "sd", size: "25MB" },
-            { label: "360p", format: "mp4", quality: "low", size: "15MB" },
-            { label: "Audio Only", format: "mp3", quality: "high", size: "8MB" }
+            { 
+              label: "1080p", 
+              format: "mp4", 
+              quality: "full-hd", 
+              size: "120MB",
+              url: `${baseUrl}?format=mp4&quality=1080p` 
+            },
+            { 
+              label: "720p", 
+              format: "mp4", 
+              quality: "hd", 
+              size: "45MB",
+              url: `${baseUrl}?format=mp4&quality=720p` 
+            },
+            { 
+              label: "480p", 
+              format: "mp4", 
+              quality: "sd", 
+              size: "25MB",
+              url: `${baseUrl}?format=mp4&quality=480p` 
+            },
+            { 
+              label: "360p", 
+              format: "mp4", 
+              quality: "low", 
+              size: "15MB",
+              url: `${baseUrl}?format=mp4&quality=360p` 
+            },
+            { 
+              label: "Audio Only", 
+              format: "mp3", 
+              quality: "high", 
+              size: "8MB",
+              url: `${baseUrl}?format=mp3&quality=high` 
+            }
           ]
         };
         
@@ -53,7 +87,7 @@ const VideoForm = ({ onVideoInfo }: { onVideoInfo: (videoInfo: any) => void }) =
         setLoading(false);
       }, 1500);
     } catch (error) {
-      console.error("Error fetching video info:", error);
+      console.error("Erro ao buscar informações do vídeo:", error);
       toast.error("Erro ao buscar informações do vídeo. Tente novamente.");
       setLoading(false);
     }
